@@ -2,8 +2,8 @@ import React from "react"
 import {
     View, Text, Modal, TouchableOpacity,
     TextInput, ToastAndroid, ScrollView, Share,
-    ActivityIndicator,
-    Image, Dimensions,Linking,
+    ActivityIndicator,TouchableWithoutFeedback,
+    Image, Dimensions, Linking, Alert,
 } from "react-native"
 import styles from "./styles"
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -12,10 +12,13 @@ import { SafeAreaView } from "react-native";
 import ytdl from 'react-native-ytdl';
 import { DownloadAudio, getInfo, DownloadHighestVideo, DownloadMediumVideo } from "./Download";
 import ImageComponent from './ImageComponent';
-import {downloadAudio} from "./DownloadAudio";
+import { downloadAudio } from "./DownloadAudio";
+import { downloadAndMergeVideo } from './HighVideoDownload'
+
 
 const MusicPlayer = () => {
     const [visible, setVisible] = React.useState(false);
+    const [modalVisible, setModalVisible] = React.useState(false);
     const [scr, setScreen] = React.useState(true);
     let [loading, setLoading] = React.useState(false);
     let [url, setUrl] = React.useState('');
@@ -27,39 +30,42 @@ const MusicPlayer = () => {
     let [started, setStarted] = React.useState(false);
     const [downloadUrl, setDownloadUrl] = React.useState('');
     const [AudioLink, setAudioLink] = React.useState('');
-
-    function AudioDownloadComponent(props){
+    let [hdVideolink,setHDVideoLink] = React.useState('');
+    function AudioDownloadComponent(props) {
         if (props != null || props != undefined || props != '') {
             return (
 
 
                 <View style={{
 
-                    borderWidth: loading ? 0 : 1, borderColor: color ,
+                    borderWidth: loading ? 0 : 1, borderColor: color,
                     width: loading ? '50%' : '95%',
                     borderRadius: 10, margin: 10, padding: 10,
                     flexDirection: 'row', justifyContent: 'center',
                     alignItems: 'center', display: started ? 'flex' : 'none'
                 }}>
-                    <Text style={{color: 'rgb(237, 153, 28)', fontSize: 13,   width: '80%'}}>
-                        Download in Audio Format <Ionicons name="musical-notes-outline" size={20} color={'pink'}/> {'\n'}{'\n'}
-                        {metadata.substring(0, 30)+'...'} 
-
-
+                    <Text style={{
+                        color: 'rgb(237, 153, 28)', fontSize: 13,
+                        display: loading ? 'none' : 'flex', width: '80%'
+                    }}>
+                        Download in Audio Format <Ionicons name="musical-notes-outline" size={20} color={'pink'} /> {'\n'}{'\n'}
+                        {metadata.substring(0, 30) + '...'}
                     </Text>
 
-                    <TouchableOpacity 
-                    style={{display: loading? 'none':'flex', flexDirection: 'row',
-                     justifyContent: 'space-between', alignItems: 'flex-end', margin: 10}}
-                    
-                    onPress={async () => {
-                        await downloadAudio(AudioLink, metadata)
-                        .then((downloadPath) => {
-                          console.log(`Audio file downloaded to: ${downloadPath}`);
-                        })
-                        .catch((error) => {
-                          console.error('Error downloading audio file:', error);
-                        });
+                    <TouchableOpacity
+                        style={{
+                            display: loading ? 'none' : 'flex', flexDirection: 'row',
+                            justifyContent: 'space-between', alignItems: 'flex-end', margin: 10
+                        }}
+
+                        onPress={async () => {
+                            await downloadAudio(AudioLink, metadata)
+                                .then((downloadPath) => {
+                                    console.log(`Audio file downloaded to: ${downloadPath}`);
+                                })
+                                .catch((error) => {
+                                    console.error('Error downloading audio file:', error);
+                                });
                         }}>
                         <Ionicons name="download-outline" size={30} color="rgb(215, 7, 158)" />
                     </TouchableOpacity>
@@ -68,31 +74,84 @@ const MusicPlayer = () => {
         }
     }
 
-    function HighVideodownloadComponent(url){
-        return(
-            <View style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', margin: 10}}>
+    // function HighVideoDownloadComponent(url){
+    //     return(
+    //         <View style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', margin: 10}}>
 
-        {url ? (
-        <TouchableOpacity onPress={() => Linking.openURL(url)}>
-          <Text>Open Download Link</Text>
-        </TouchableOpacity>
-      ) : null}
-            </View>
-        )
+    //     {url ? (
+    //     <TouchableOpacity onPress={() => Linking.openURL(url)}>
+    //       <Text>Open Download Link</Text>
+    //     </TouchableOpacity>
+    //   ) : null}
+    //         </View>
+    //     )
+    // }
+    function HighVideoDownloadComponent(props) {
+        if (props != null || props != undefined || props != '') {
+            return (
+                <View style={{
+
+                    borderWidth: loading ? 0 : 1, borderColor: color,
+                    width: loading ? '50%' : '95%',
+                    borderRadius: 10, margin: 10, padding: 10,
+                    flexDirection: 'row', justifyContent: 'center',
+                    alignItems: 'center', display: started ? 'flex' : 'none'
+                }}>
+                    <Text style={{
+                        color: 'rgb(237, 153, 28)', fontSize: 13,
+                        display: loading ? 'none' : 'flex', width: '80%'
+                    }}>
+                        Download in Video Format{' '}
+                        <Ionicons name="videocam-outline" size={20} color={'pink'} /> 
+                        
+                        {'\n'}{'\n'}
+                        {metadata.substring(0, 30) + '...'}
+                    </Text>
+                    <TouchableOpacity
+                        style={{
+                            display: loading ? 'none' : 'flex', flexDirection: 'row',
+                            justifyContent: 'space-between', alignItems: 'flex-end', margin: 10
+                        }}
+
+                        onPress={async () => {
+                          console.log('hdVideolink',hdVideolink)
+                          console.log('audiolink',AudioLink)
+                          await downloadAndMergeVideo(hdVideolink, metadata)
+                          .then((downloadPath) => {
+                              console.log(`Audio file downloaded to: ${downloadPath}`);
+                          })
+                          .catch((error) => {
+                              console.error('Error downloading audio file:', error);
+                          });
+                          //   downloadAndMergeVideo(AudioLink, hdVideolink, metadata)
+                        //   .then((downloadedFiles) => {
+                        //     console.log('Downloaded files:', downloadedFiles);
+                        //   })
+                        //   .catch((error) => {
+                        //     console.error('Error downloading audio and video:', error);
+                        //   });
+                        }}>
+                        <Ionicons name="download-outline" size={30} color="rgb(215, 7, 158)" />
+                    </TouchableOpacity>
+
+                </View>
+            )
+
+        }
     }
 
-    function LowVideodownloadComponent(props){
+    function LowVideodownloadComponent(props) {
 
     }
 
-   
+
     function ImageComponent(imageUrl) {
 
         if (imageUrl != null || imageUrl != undefined || imageUrl != '' || started == false) {
             // setStarted(true);
             return (
                 <View style={{
-                    borderWidth: loading ? 0 : 1, borderColor: color ,
+                    borderWidth: loading ? 0 : 1, borderColor: color,
                     width: loading ? '50%' : '95%',
                     borderRadius: 10, margin: 10, padding: 10,
                     flexDirection: 'column', justifyContent: 'center',
@@ -126,27 +185,32 @@ const MusicPlayer = () => {
 
     };
 
-    function showInfo(props){
-        if (props == null || props == undefined || props == ''){
+    function showInfo(props) {
+        if (props == null || props == undefined || props == '') {
             return (
-                <View style={{flex:1, justifyContent:'center', alignItems:'center'
-                    ,display:started?'none':'flex'}}>
-                    <Text style={{color:'rgb(237, 153, 28)', fontSize:20}}>
-                    On Mobile Devices: {'\n'}
-                      • Open the YouTube app on your mobile device. {'\n'}
-                      • Find the video you want to copy the URL for.{'\n'}
-                      • Tap on the video to open it.{'\n'}
-                      • Tap on the Share button below the video.{'\n'}
-                      • Tap on the Copy link option. This will copy the video URL to your clipboard.{'\n'}
-                      {'\n'}{'\n'}
-                    On Web Devices: {'\n'}
-
-                      • Open the YouTube website in your web browser.{'\n'}
-                      • Find the video you want to copy the URL for.{'\n'}
-                      • Click on the video to start playing it.{'\n'}
-                      • Click on the Share button below the video.{'\n'}
-                      • Click on the Copy button next to the video URL. This will copy the video URL to your clipboard.{'\n'}{'\n'}
-                      • Note: The Share button on YouTube may be represented by different icons or labels depending on your device or browser.{'\n'}
+                <View style={{
+                    flex: 1, justifyContent: 'center', alignItems: 'center'
+                    , display: started ? 'none' : 'flex'
+                }}>
+                    <Text style={{ color: 'rgb(237, 153, 28)', fontSize: 20 }}>
+                        From Youtube App: {'\n'}
+                        <Text style={{ color: 'rgb(200, 250, 200)', fontSize: 17 }}>
+                            • Open the YouTube app on your mobile device. {'\n'}
+                            • Find the video you want to copy the URL for.{'\n'}
+                            • Tap on the video to open it.{'\n'}
+                            • Tap on the Share button below the video.{'\n'}
+                            • Tap on the Copy link option. This will copy the video URL to your clipboard.{'\n'}
+                            {'\n'}{'\n'}
+                        </Text>
+                        From Web : {'\n'}
+                        <Text style={{ color: 'rgb(200, 250, 200)', fontSize: 17 }}>
+                            • Open the YouTube website in your web browser.{'\n'}
+                            • Find the video you want to copy the URL for.{'\n'}
+                            • Click on the video to start playing it.{'\n'}
+                            • Click on the Share button below the video.{'\n'}
+                            • Click on the Copy button next to the video URL. This will copy the video URL to your clipboard.{'\n'}{'\n'}
+                            • Note: The Share button on YouTube may be represented by different icons or labels depending on your device or browser.{'\n'}
+                        </Text>
                     </Text>
                 </View>
             )
@@ -155,8 +219,8 @@ const MusicPlayer = () => {
 
     const shareApp = () => {
         Share.share({
-            message: 'Check out this awesome app!',
-            url: 'com.portControl.myapp',
+            message: 'Check out this awesome app! https://github.com/pavanb0/VideoDownload',
+            url: 'https://github.com/pavanb0/VideoDownload',
             title: 'My App',
         })
             .then(result => {
@@ -171,20 +235,19 @@ const MusicPlayer = () => {
     const handlePress = () => {
         setVisible(true);
     };
+    const handlePresssocial = () => {
+        setModalVisible(true);
+    };
 
     const handleHide = () => {
         setVisible(false);
     };
-    const downloadVideo = async (videoUrl) => {
-        try {
-            const response = await fetch(videoUrl);
-            const blob = await response.blob();
-            const downloadUrl = URL.createObjectURL(blob);
-            // do something with the downloadUrl, such as displaying it in a WebView or opening it in a media player
-        } catch (error) {
-            console.log(error);
-        }
+    const handleHidesocial = () => {
+        setModalVisible(false);
     };
+
+  
+
 
     function views(props) {
         if (props) {
@@ -206,17 +269,21 @@ const MusicPlayer = () => {
 
                         <View style={styles.downloadchild}>
                             <TextInput
-                                style={{ width: '80%', borderWidth: 1, borderColor: color,
-                                 borderRadius: 10, margin: 10, padding: 10 }}
+                                style={{
+                                    width: '80%', borderWidth: 1, borderColor: color,
+                                    borderRadius: 10, margin: 10, padding: 10
+                                }}
                                 // style={styles.input}
                                 placeholder="Enter URL"
                                 placeholderTextColor="rgb(237, 153, 28)"
                                 color="rgb(66, 203, 165)"
 
                                 onChangeText={(text) => setUrl(text)}
-                                onSubmitEditing={async() => {
+                                onSubmitEditing={async () => {
                                     let audiolink = await DownloadAudio(url)
                                     setAudioLink(audiolink);
+                                    let videolink = await DownloadHighestVideo(url)
+                                    setHDVideoLink(videolink);
                                     // let HighVideoLink = await DownloadHighestVideo(url)
                                     // let LowVideoLink = await DownloadHighestVideo(url)
                                     // console.log( AudioLink);
@@ -229,16 +296,16 @@ const MusicPlayer = () => {
                                         setStarted(true);
                                         setLoading(true);
                                         let audiolink = await DownloadAudio(url);
-                                        // console.log(audiolink);
                                         setAudioLink(audiolink);
-                                         let info = await getInfo(url);
-                                        setUrl(" " + String(info[0]) + " " + String(info[1]) + " " + String(info[2]) + " " + String(info[3]));
+                                        let videolink = await DownloadHighestVideo(url)
+                                        setHDVideoLink(videolink);
+                                        let info = await getInfo(url);
                                         setMetadata(info[0] + '\n' + info[3])
                                         setImage(info[1]);
-                                      
+
 
                                     } catch (err) {
-                                        ToastAndroid.show(String(err)+'🙃', ToastAndroid.SHORT);
+                                        ToastAndroid.show(String(err) + '🙃', ToastAndroid.SHORT);
                                         console.log(err);
 
                                     }
@@ -263,17 +330,18 @@ const MusicPlayer = () => {
                             </TouchableOpacity>
                         </View>
                         <ScrollView>
-                            
+
                             {showInfo(image)}
                             {/* {()=>{ if(image == null || image == undefined || image == ''){
                             ImageComponent(image)}}} */}
                             {ImageComponent(image)}
                             {AudioDownloadComponent(AudioLink)}
+                            {HighVideoDownloadComponent("")}
                             {/* {HighVideodownloadComponent(downloadUrl)} */}
                             {/* {LowVideodownloadComponent(LowVideoLink)}     */}
 
-                        
-                        
+
+
                             {/* {ImageComponent(image)}
                             {ImageComponent(image)} */}
                             {/* 
@@ -319,7 +387,7 @@ const MusicPlayer = () => {
 
                 <View style={styles.bottombuttons}>
                     <TouchableOpacity onPress={() => {
-                        ToastAndroid.show("Play", ToastAndroid.SHORT);
+                        handlePresssocial();
                     }}>
                         <Ionicons
                             name="heart-outline"
@@ -382,6 +450,40 @@ const MusicPlayer = () => {
                             </View>
                         </TouchableOpacity>
                     </Modal>
+
+                    <Modal visible={modalVisible} animationType="slide" transparent={true}>
+                        <TouchableOpacity style={
+                            {
+                                flex: 1,
+                                // backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                                justifyContent: 'flex-end',
+                                alignItems:'flex-start',
+                                marginRight: width/30,
+                                marginBottom: 45,
+                            }
+                        } onPress={handleHidesocial}>
+                            <View style={styles.menu}>
+                                <TouchableOpacity
+                                    onPress={() => {
+                                        Linking.openURL('https://github.com/pavanb0/').catch((err)=> Alert.alert('Error',String(err)))
+
+                                    }}
+                                >
+                                    <Text style={styles.item}>Follow me on github </Text>
+                                </TouchableOpacity>
+
+
+                                <TouchableOpacity onPress={() => {
+                                   Linking.openURL('https://www.instagram.com/pavanbagwe/').catch((err)=> Alert.alert('Error',String(err)))
+                                }}>
+
+                                    <Text style={styles.item}>follow me on Instagram</Text>
+
+                                </TouchableOpacity>
+                            </View>
+                        </TouchableOpacity>
+                    </Modal>
+                    
                 </View>
             </View>
         </SafeAreaView>
