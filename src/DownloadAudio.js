@@ -6,7 +6,9 @@ import { showMessage } from 'react-native-flash-message';
 export async function downloadAudio(url,title) {
     console.log(url);
   const fileName = `${title.substring(10, 30).split(' ').join('')}.mp3`;
-  const downloadDest =
+
+
+    const downloadDest =
     Platform.OS === 'android'
       ? `${RNFS.DownloadDirectoryPath}/${fileName}`
       : `${RNFS.DocumentDirectoryPath}/${fileName}`;
@@ -49,4 +51,5 @@ try{
   }
 
   return downloadDest;
+  
 }

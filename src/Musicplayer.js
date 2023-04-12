@@ -59,6 +59,7 @@ const MusicPlayer = () => {
                         }}
 
                         onPress={async () => {
+                           
                             await downloadAudio(AudioLink, metadata)
                                 .then((downloadPath) => {
                                     console.log(`Audio file downloaded to: ${downloadPath}`);
@@ -123,13 +124,7 @@ const MusicPlayer = () => {
                           .catch((error) => {
                               console.error('Error downloading audio file:', error);
                           });
-                          //   downloadAndMergeVideo(AudioLink, hdVideolink, metadata)
-                        //   .then((downloadedFiles) => {
-                        //     console.log('Downloaded files:', downloadedFiles);
-                        //   })
-                        //   .catch((error) => {
-                        //     console.error('Error downloading audio and video:', error);
-                        //   });
+                      
                         }}>
                         <Ionicons name="download-outline" size={30} color="rgb(215, 7, 158)" />
                     </TouchableOpacity>
@@ -271,7 +266,7 @@ const MusicPlayer = () => {
                             <TextInput
                                 style={{
                                     width: '80%', borderWidth: 1, borderColor: color,
-                                    borderRadius: 10, margin: 10, padding: 10
+                                    borderRadius: 10, margin: 10, padding: 10,
                                 }}
                                 // style={styles.input}
                                 placeholder="Enter URL"
